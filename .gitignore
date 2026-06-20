@@ -1,0 +1,7 @@
+movie-transcode.env
+plex-refresh.env
+transcode-logs/
+*.log
+*.tmp
+*.tmp.*
+
