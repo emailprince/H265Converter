@@ -1,7 +1,7 @@
 movie-transcode.env
 plex-refresh.env
 transcode-logs/
+web-interface/node_modules/
 *.log
 *.tmp
 *.tmp.*
-

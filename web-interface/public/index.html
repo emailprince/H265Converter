@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaControl</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#0d0d0d;--bg1:#141414;--bg2:#1c1c1c;--bg3:#252525;--bg4:#2f2f2f;
+  --border:#333;--border2:#444;--text1:#e8e6e0;--text2:#a09e98;--text3:#6b6966;
+  --orange:#e07b39;--orange2:#c26a2a;--green:#4caf82;--red:#d95e5e;--yellow:#c9a227;--blue:#5b9bd5;
+  --greenbg:#0a1a12;--redbg:#1a0a0a;--yellowbg:#1a1400;--bluebg:#0a1220;--orangebg:#1f1209;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+html,body{height:100%;background:var(--bg0);color:var(--text1);font-family:var(--sans);font-size:13px;line-height:1.45}
+button,input,select{font:inherit}
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg0);z-index:5}
+.login-box{width:340px;background:var(--bg1);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.login-head{display:flex;align-items:center;gap:12px;padding:20px 24px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.logo{width:32px;height:32px;border-radius:3px;background:var(--orange);color:#000;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700}
+.title{font-family:var(--mono);font-weight:700;font-size:14px}.sub{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.login-body{padding:24px}.login-body label{display:block;font-family:var(--mono);font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.login-body input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text1);padding:8px 10px;margin-bottom:14px;outline:none;font-family:var(--mono)}
+.login-body input:focus{border-color:var(--orange)}.login-error{display:none;margin-bottom:12px;color:var(--red);background:var(--redbg);border:1px solid #3d1515;border-radius:4px;padding:8px 10px;font-family:var(--mono);font-size:12px}
+.login-foot{padding:12px 24px;background:var(--bg2);border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--text3);text-align:center}
+#app{display:none;height:100vh;flex-direction:column}
+.topbar{height:44px;background:var(--bg1);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 16px;flex-shrink:0}
+.topbar .name{font-family:var(--mono);font-weight:700}.topbar .node{font-family:var(--mono);font-size:12px;color:var(--text2)}.spacer{flex:1}.user{font-family:var(--mono);font-size:12px;color:var(--text2)}
+.wrap{display:flex;flex:1;overflow:hidden}.side{width:220px;background:var(--bg1);border-right:1px solid var(--border);padding:10px 0;flex-shrink:0}
+.side-label{padding:8px 14px 4px;font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.nav{display:flex;align-items:center;gap:8px;padding:8px 14px;border-left:2px solid transparent;cursor:pointer;color:var(--text2);font-family:var(--mono);font-size:12px}
+.nav:hover,.nav.active{background:var(--bg2);color:var(--orange);border-left-color:var(--orange)}
+.content{flex:1;overflow:auto;padding:20px}.page{display:none}.page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.stat,.panel{background:var(--bg1);border:1px solid var(--border);border-radius:6px}.stat{padding:14px 16px}.stat-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}.stat-val{font-family:var(--mono);font-size:22px;font-weight:700}.stat-sub{font-family:var(--mono);font-size:11px;color:var(--text2)}
+.panel{margin-bottom:16px;overflow:hidden}.panel-head{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-title{font-family:var(--mono);font-weight:700;font-size:12px}.panel-body{padding:16px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn{border:1px solid transparent;border-radius:4px;padding:6px 12px;font-family:var(--mono);font-size:12px;cursor:pointer}
+.btn-primary{background:var(--orange);border-color:var(--orange);color:#000;font-weight:700}.btn-primary:hover{background:var(--orange2)}
+.btn-secondary{background:var(--bg3);border-color:var(--border2);color:var(--text1)}.btn-secondary:hover{border-color:var(--orange)}
+.btn-danger{background:var(--redbg);border-color:#3d1515;color:var(--red)}.btn-danger:hover{background:var(--red);color:#fff}.btn:disabled{opacity:.45;cursor:not-allowed}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-family:var(--mono);font-size:10px;border:1px solid var(--border2);color:var(--text2);background:var(--bg3)}
+.ok{background:var(--greenbg);border-color:#1a3d28;color:var(--green)}.bad{background:var(--redbg);border-color:#3d1515;color:var(--red)}.warn{background:var(--yellowbg);border-color:#3d3000;color:var(--yellow)}.blue{background:var(--bluebg);border-color:#1a2d45;color:var(--blue)}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}.tbl th{background:var(--bg2);color:var(--text3);font-weight:600;text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.06em}.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}.tbl tr:hover td{background:var(--bg2)}
+.code{background:#080808;border:1px solid var(--border);border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;color:#d6d2c8;min-height:260px;max-height:62vh;overflow:auto}
+.muted{color:var(--text3)}.mono{font-family:var(--mono)}select{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text1);padding:6px 10px;font-family:var(--mono);min-width:260px}
+.alert{padding:9px 12px;border-radius:4px;font-family:var(--mono);font-size:12px;margin-bottom:12px;display:none}.alert.show{display:block}.alert.ok{background:var(--greenbg);border:1px solid #1a3d28}.alert.bad{background:var(--redbg);border:1px solid #3d1515}
+@media(max-width:760px){.wrap{flex-direction:column}.side{width:100%;display:flex;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border)}.side-label{display:none}.nav{white-space:nowrap}.content{padding:12px}}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="login-box">
+    <div class="login-head"><div class="logo">MC</div><div><div class="title">MediaControl</div><div class="sub">PAM authenticated conversion control</div></div></div>
+    <div class="login-body">
+      <div id="login-error" class="login-error"></div>
+      <label>Username</label><input id="username" autocomplete="username" value="root">
+      <label>Password</label><input id="password" type="password" autocomplete="current-password">
+      <button id="login-btn" class="btn btn-primary" style="width:100%">Login</button>
+    </div>
+    <div class="login-foot">Uses local Proxmox/Linux PAM</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="logo">MC</div><div class="name">MediaControl</div><div class="node">dellproxmox:8016</div>
+    <div class="spacer"></div><div class="user" id="user"></div><button class="btn btn-secondary" id="logout">Logout</button>
+  </div>
+  <div class="wrap">
+    <div class="side">
+      <div class="side-label">Control</div>
+      <div class="nav active" data-page="dashboard">Dashboard</div>
+      <div class="nav" data-page="logs">Logs</div>
+      <div class="nav" data-page="config">Config</div>
+    </div>
+    <main class="content">
+      <div id="notice" class="alert"></div>
+      <section id="dashboard" class="page active">
+        <div class="grid">
+          <div class="stat"><div class="stat-label">Job State</div><div class="stat-val" id="state">-</div><div class="stat-sub" id="state-sub"></div></div>
+          <div class="stat"><div class="stat-label">Tmux</div><div class="stat-val" id="tmux">-</div><div class="stat-sub">session media_h265</div></div>
+          <div class="stat"><div class="stat-label">Processes</div><div class="stat-val" id="proc-count">-</div><div class="stat-sub">ffmpeg/transcode wrappers</div></div>
+          <div class="stat"><div class="stat-label">Cron</div><div class="stat-val" id="cron-state">-</div><div class="stat-sub">Sunday 3 AM target</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Actions</div><div class="row"><button class="btn btn-secondary" id="refresh">Refresh</button></div></div>
+          <div class="panel-body">
+            <div class="row">
+              <button class="btn btn-primary" id="start">Start Now</button>
+              <button class="btn btn-secondary" id="cron-start">Run Cron Wrapper</button>
+              <button class="btn btn-danger" id="stop">Stop Active Job</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Current Progress</div><span id="selected-log" class="badge"></span></div>
+          <div class="panel-body">
+            <table class="tbl">
+              <tbody>
+                <tr><th>Last Start</th><td id="last-start" class="mono muted"></td></tr>
+                <tr><th>Last Done</th><td id="last-done" class="mono muted"></td></tr>
+                <tr><th>Last Error</th><td id="last-fail" class="mono muted"></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Processes</div></div>
+          <div class="panel-body" id="processes"></div>
+        </div>
+      </section>
+
+      <section id="logs" class="page">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Log Browser</div><div class="row"><select id="log-select"></select><button class="btn btn-secondary" id="reload-log">Reload</button></div></div>
+          <div class="panel-body"><div id="log-content" class="code">Select a log.</div></div>
+        </div>
+      </section>
+
+      <section id="config" class="page">
+        <div class="panel"><div class="panel-head"><div class="panel-title">Runtime Config</div></div><div class="panel-body" id="config-body"></div></div>
+        <div class="panel"><div class="panel-head"><div class="panel-title">Scripts</div></div><div class="panel-body" id="scripts-body"></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let state = null;
+let logList = [];
+let currentLog = '';
+let timer = null;
+
+function showNotice(text, ok=false){
+  const el = $('#notice');
+  el.textContent = text;
+  el.className = `alert show ${ok ? 'ok' : 'bad'}`;
+  setTimeout(()=>{ el.className='alert'; }, 5000);
+}
+
+async function api(path, opts={}){
+  const res = await fetch(path, { credentials:'same-origin', headers:{'Content-Type':'application/json'}, ...opts });
+  const data = await res.json().catch(()=>({ok:false,error:'Invalid JSON response'}));
+  if(!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+async function checkLogin(){
+  try {
+    const me = await api('/auth/me');
+    $('#login').style.display='none';
+    $('#app').style.display='flex';
+    $('#user').textContent = me.user;
+    await refreshAll();
+    timer = setInterval(refreshStatus, 5000);
+  } catch {
+    $('#login').style.display='flex';
+    $('#app').style.display='none';
+  }
+}
+
+async function login(){
+  const btn = $('#login-btn');
+  const err = $('#login-error');
+  btn.disabled = true; err.style.display='none';
+  try {
+    await api('/auth/login', { method:'POST', body:JSON.stringify({ username:$('#username').value, password:$('#password').value }) });
+    $('#password').value='';
+    await checkLogin();
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display='block';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function logout(){
+  await api('/auth/logout', { method:'POST' }).catch(()=>{});
+  clearInterval(timer);
+  location.reload();
+}
+
+function badge(text, cls=''){
+  return `<span class="badge ${cls}">${escapeHtml(text)}</span>`;
+}
+
+function escapeHtml(text){
+  return String(text ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderStatus(data){
+  state = data;
+  $('#state').textContent = data.running ? 'Running' : 'Idle';
+  $('#state').style.color = data.running ? 'var(--green)' : 'var(--text1)';
+  $('#state-sub').textContent = data.now ? `updated ${new Date(data.now).toLocaleTimeString()}` : '';
+  $('#tmux').textContent = data.tmux ? 'Up' : 'Down';
+  $('#tmux').style.color = data.tmux ? 'var(--green)' : 'var(--text2)';
+  $('#proc-count').textContent = data.processes.length;
+  $('#cron-state').textContent = data.cron.length ? 'Set' : 'Missing';
+  $('#cron-state').style.color = data.cron.length ? 'var(--green)' : 'var(--red)';
+  $('#start').disabled = data.running;
+  $('#cron-start').disabled = data.running;
+  $('#stop').disabled = !data.tmux;
+  const p = data.logs.progress || {};
+  $('#last-start').textContent = p.lastStart || 'No recent start line';
+  $('#last-done').textContent = p.lastDone || 'No completion line yet';
+  $('#last-fail').textContent = p.lastFail || 'No recent error line';
+  const selected = data.logs.selectedLog;
+  $('#selected-log').textContent = selected ? selected.name : 'no log';
+  $('#processes').innerHTML = data.processes.length
+    ? `<table class="tbl"><thead><tr><th>PID</th><th>Command</th></tr></thead><tbody>${data.processes.map(p=>`<tr><td>${escapeHtml(p.pid)}</td><td class="mono">${escapeHtml(p.command)}</td></tr>`).join('')}</tbody></table>`
+    : '<span class="muted mono">No matching ffmpeg/transcode processes.</span>';
+  renderConfig(data);
+}
+
+function renderConfig(data){
+  const cfg = data.config;
+  const envRows = Object.entries(cfg.env || {}).map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td class="mono">${escapeHtml(v)}</td></tr>`).join('');
+  $('#config-body').innerHTML = `<table class="tbl"><tbody>
+    <tr><th>Runner</th><td class="mono">${escapeHtml(cfg.runner)}</td></tr>
+    <tr><th>Cron Wrapper</th><td class="mono">${escapeHtml(cfg.cronWrapper)}</td></tr>
+    <tr><th>Env File</th><td class="mono">${escapeHtml(cfg.envFile)}</td></tr>
+    <tr><th>Log Dir</th><td class="mono">${escapeHtml(cfg.logDir)}</td></tr>
+    <tr><th>Cron</th><td class="mono">${escapeHtml((data.cron || []).join('\\n') || 'not installed')}</td></tr>
+    ${envRows}
+  </tbody></table>`;
+  $('#scripts-body').innerHTML = `<table class="tbl"><thead><tr><th>Path</th><th>State</th><th>Mode</th><th>Modified</th></tr></thead><tbody>${data.scripts.map(s=>`
+    <tr><td class="mono">${escapeHtml(s.path)}</td><td>${s.exists ? badge(s.executable ? 'executable' : 'present','ok') : badge('missing','bad')}</td><td>${escapeHtml(s.mode || '')}</td><td>${s.mtime ? escapeHtml(new Date(s.mtime).toLocaleString()) : ''}</td></tr>
+  `).join('')}</tbody></table>`;
+}
+
+async function refreshStatus(){
+  const data = await api('/api/status');
+  renderStatus(data);
+}
+
+async function refreshLogs(){
+  const data = await api('/api/logs?limit=120');
+  logList = data.logs;
+  const prior = currentLog;
+  $('#log-select').innerHTML = logList.map(l=>`<option value="${escapeHtml(l.name)}">${escapeHtml(l.kind)} | ${escapeHtml(new Date(l.mtime).toLocaleString())} | ${escapeHtml(l.name)}</option>`).join('');
+  currentLog = prior && logList.some(l=>l.name===prior) ? prior : (logList[0]?.name || '');
+  $('#log-select').value = currentLog;
+  if(currentLog) await loadLog(currentLog);
+}
+
+async function loadLog(name){
+  if(!name){ $('#log-content').textContent = 'No logs found.'; return; }
+  currentLog = name;
+  const data = await api(`/api/logs/${encodeURIComponent(name)}?bytes=120000`);
+  $('#log-content').textContent = data.content || '';
+}
+
+async function refreshAll(){
+  await refreshStatus();
+  await refreshLogs();
+}
+
+async function action(path, okText){
+  try {
+    await api(path, { method:'POST', body:'{}' });
+    showNotice(okText, true);
+    await refreshAll();
+  } catch(e) {
+    showNotice(e.message, false);
+  }
+}
+
+document.querySelectorAll('.nav').forEach(n => n.addEventListener('click', () => {
+  document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  n.classList.add('active');
+  $('#' + n.dataset.page).classList.add('active');
+}));
+$('#login-btn').addEventListener('click', login);
+$('#password').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
+$('#logout').addEventListener('click', logout);
+$('#refresh').addEventListener('click', refreshAll);
+$('#start').addEventListener('click', ()=>action('/api/start','Started media conversion job.'));
+$('#cron-start').addEventListener('click', ()=>action('/api/run-cron-wrapper','Cron wrapper invoked.'));
+$('#stop').addEventListener('click', ()=>{ if(confirm('Stop the active media conversion tmux session?')) action('/api/stop','Stopped active job.'); });
+$('#reload-log').addEventListener('click', ()=>loadLog($('#log-select').value));
+$('#log-select').addEventListener('change', e=>loadLog(e.target.value));
+checkLogin();
+</script>
+</body>
+</html>

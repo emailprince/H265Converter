@@ -70,6 +70,16 @@ Run weekly in tmux:
 ./scripts/weekly_movie_transcode_cron.sh
 ```
 
+## Web Interface
+
+The `web-interface/` folder contains the MediaControl Node.js control panel for starting/stopping the H.265 runner and viewing logs.
+
+```bash
+cd web-interface
+npm install
+PORT=8016 npm start
+```
+
 ## Configuration
 
 The scripts read `movie-transcode.env` from the repo root by default. You can point to another file with:
